@@ -21,17 +21,23 @@
             <h3>Github User Search</h3>
             <ul>
                 <li id="toggler">
-                    <i class="fa-solid fa-sun" id="mode-toggle"></i>
+                    <a href="#">
+                        <i class="fa-solid fa-sun" id="mode-toggle"></i>
+                    </a>
+                </li>
+                <li><a href="#">
+                        About
+                    </a>
                 </li>
                 <li>
-                    About
-                </li>
-
-                <li>
-                    Repo
+                    <a href="#">
+                        Repo
+                    </a>
                 </li>
                 <li>
-                    Contact
+                    <a href="#">
+                        Contact
+                    </a>
                 </li>
             </ul>
             <div class="open-nav" id="open-nav">
@@ -65,7 +71,10 @@
                 </div>
             </div>
             <div class="user-search">
-                <i class="fa-solid fa-magnifying-glass" id="search-btn"></i>
+
+                <i class="fa-solid fa-magnifying-glass" id="search-btn">
+                    <span class="circle"></span>
+                </i>
                 <input type="text" name="github-user-search" class="search-input" id="search-input">
             </div>
         </main>
@@ -82,15 +91,20 @@
 
     <script>
 
+        const searchBtn = document.querySelector("#search-btn")
+        const searchInput = document.querySelector(".search-input")
+
         if (localStorage.getItem("dark-mode") === "on") {
-            // console.log("dark mode on from prev setting")
             document.body.classList.add("dark")
             document.querySelector("#mode-toggle").classList.replace("fa-sun", "fa-moon")
+            document.getElementById("toggler").classList.add("darken")
+            document.getElementById("toggler").classList.remove("whiten")
         }
         else if (localStorage.getItem("dark-mode") === "off") {
-            // console.log("dark mode off from prev setting")
             document.body.classList.remove("dark")
             document.querySelector("#mode-toggle").classList.replace("fa-moon", "fa-sun")
+            document.getElementById("toggler").classList.remove("darken")
+            document.getElementById("toggler").classList.add("whiten")
         }
 
         const heroSentencesArr = [
@@ -106,76 +120,116 @@
             "Our GitHub user search web app is free to use and requires no registration or installation."
         ];
 
-        const searchBtn = document.querySelector("#search-btn")
-        const searchInput = document.querySelector(".search-input")
 
+        let currentSentenceIdx = 0
+        let currentCharIdx = 0
+        let interval;
+        function heroTyper() {
+            interval = setInterval(() => {
+                const currentSentence = heroSentencesArr[currentSentenceIdx]
+                const displayedText = currentSentence.slice(0, currentCharIdx)
+                document.querySelector(".sentences").textContent = displayedText
+                currentCharIdx++
+                if (currentCharIdx === currentSentence.length) {
+                    clearInterval(interval)
+                    currentSentenceIdx++
+                    if (currentSentenceIdx === heroSentencesArr.length) {
+                        currentSentenceIdx = 0
+                    }
+                    currentCharIdx = 0
+                    setTimeout(() => {
+                        heroTyper()
+                    }, 3000)
+                }
+            }, 100)
+        }
 
-
+        heroTyper()
 
         const getUserData = async (username) => {
-            const reposArr = [];
-            let animationIterations = 0
-            await fetch(`https://api.github.com/users/${username}/repos`).then(res => res.json()).then(data => {
-                for (let i = 0; i < 3; i++) {
-                    reposArr.push({ name: data[i].name, link: data[i].html_url })
-                }
-            })
-            await fetch(`https://api.github.com/users/${username}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.querySelector(".modal").style.display = "grid"
-                    document.querySelector(".modal").innerHTML = `
-                    <div class="repos-container">${reposArr.map((repo, idx, arr) => `<a class="repo" href="${repo.link}" target="_blank" style="animation-delay:${idx * 2.2}s;">${repo.name}</a>`).join("")}</div>
-                    <div class="exit" id="exit-modal">×</div>
-        <div class="modal-top">
-            <div class="username"><a href="https://www.github.com/${data.login}" target="_blank">@${data.login}</a></div>
-            <div class="profile-img">
-                <img src="${data.avatar_url}" alt="profile-img">
-            </div>
-            <div class="name">
-                ${data.name.length > 10 ? data.name.slice(0, 6) : data.name}
-                <span class="follows">${data.followers} followers &nbsp; &nbsp; ${data.following} following</span>
-            </div>
-        </div>
-        <div class="modal-center">
-            <div class="name-mobile">${data.name}</div>
-            <div class="content">
-                <div class="public-repos">
-                    <i class="fa-solid fa-file"></i>
-                    <h3>${data.public_repos} repo</h3>
-                </div>
-                <div class="portfolio">
-                    <i class="fas fa-globe"></i>
-                    <h3><a href="${data.blog}">${data.blog}</a></h3>
-                </div>
-                <div class="country">
-                    <i class="fas fa-location-dot"></i>
-                    <h3>${data.location}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="modal-bottom">
+            if (username !== "") {
+                document.querySelector(".user-search").classList.add("loading")
+                document.querySelector(".user-search i").className = ""
+                const reposArr = [];
+                await fetch(`https://api.github.com/users/${username}/repos`)
+                    .then(res => res.json())
+                    .catch(err => {
+                        console.log(0)
+                    })
+                    .then(data => {
+                        for (let i = 0; i < 3; i++) {
+                            reposArr.push({ name: data[i].name, link: data[i].html_url })
+                        }
+                    })
+                await fetch(`https://api.github.com/users/${username}`)
+                    .then(res => res.json())
+                    .catch(err => {
+                        console.log(0)
+                    })
+                    .then(data => {
 
-            <div class="socials">
-                <a href="#" class="social facebook"><i class="fa-brands fa-facebook"></i></a>
-                <a href="https://www.twitter.com/${data.twitter_username}" class="social twitter"><i class="fa-brands fa-twitter"></i></a>
-                <a href="#" class="social linkedin"><i class="fa-brands fa-linkedin"></i></a>
-                <a href="${data.html_url}" class="social github"><i class="fa-brands fa-github"></i></a>
-            </div>
-        </div>
-                    `
-                })
+                        setTimeout(() => {
+                            document.querySelector(".container").classList.add("modalshown")
+                            document.querySelector(".user-search").classList.remove("loading")
+                            document.querySelector(".modal").classList.add("shown")
+                            document.querySelector(".user-search i").className = "fa-solid fa-magnifying-glass"
+                            document.querySelector(".modal").innerHTML =
+                                `
+                            <div class="repos-container">${reposArr.map((repo, idx, arr) => `<a class="repo" href="${repo.link}" target="_blank" style="animation-delay:${idx * 2.2}s;">${repo.name}</a>`).join("")}</div>
+                            <div class="exit" id="exit-modal"><span></span><span></span></div>
+                            <div class="modal-top">
+                                <div class="username"><a href="https://www.github.com/${data.login}" target="_blank">@${data.login}</a></div>
+                                <div class="profile-img">
+                                    <img src="${data.avatar_url}" alt="profile-img">
+                                </div>
+                                    <div class="name">
+                                        ${data.name.length > 10 ? data.name.slice(0, 6) : data.name}
+                                        <span class="follows">${data.followers} followers &nbsp; &nbsp; ${data.following} following</span>
+                                    </div>
+                            </div>
+                            <div class="modal-center">
+                                <div class="name-mobile">${data.name}</div>
+                                <div class="content">
+                                    <div class="public-repos">
+                                        <i class="fa-solid fa-file"></i>
+                                        <h3>${data.public_repos} repo</h3>
+                                    </div>
+                                        <div class="portfolio">
+                                            <i class="fas fa-globe"></i>
+                                            <h3><a href="${data.blog}">${data.blog}</a></h3>
+                                        </div>
+                                        <div class="country">
+                                            <i class="fas fa-location-dot"></i>
+                                            <h3>${data.location}</h3>
+                                        </div>
+                                </div>
+                            </div>
+                            <div class="modal-bottom">
+                                <div class="socials">
+                                    <a href="#" class="social facebook"><i class="fa-brands fa-facebook"></i></a>
+                                    <a href="https://www.twitter.com/${data.twitter_username}" class="social twitter"><i class="fa-brands fa-twitter"></i></a>
+                                    <a href="#" class="social linkedin"><i class="fa-brands fa-linkedin"></i></a>
+                                    <a href="${data.html_url}" class="social github"><i class="fa-brands fa-github"></i></a>
+                                </div>
+                            </div>
+                        `
+                            document.querySelectorAll(".repo")[document.querySelectorAll(".repo").length - 1].addEventListener("animationend", e => {
+                                console.log("animation ended")
+                                document.querySelectorAll(".repo").forEach((repo, idx) => {
+                                    repo.style.animation = "none"
+                                    setTimeout(() => {
+                                        repo.style.animation = ""
+                                        repo.style.animationDelay = idx * 1.2 + "s"
+                                    }, idx * 1000)
+                                })
+                            })
+                        }, 800)
 
-            document.querySelectorAll(".repo")[document.querySelectorAll(".repo").length - 1].addEventListener("animationend", e => {
-                console.log("animation ended")
-                document.querySelectorAll(".repo").forEach((repo, idx) => {
-                    repo.style.animation = "none"
-                    setTimeout(() => {
-                        repo.style.animation = ""
-                        repo.style.animationDelay = idx * 1.2 + "s"
-                    }, idx * 1000)
-                })
-            })
+                    })
+
+            } else {
+
+            }
 
         }
 
@@ -193,7 +247,8 @@
 
 
         function exitModal() {
-            document.querySelector(".modal").style.display = "none"
+            document.querySelector(".modal").classList.remove("shown")
+            document.querySelector(".container").classList.remove("modalshown")
         }
 
         document.addEventListener("click", e => {
@@ -204,69 +259,42 @@
         })
 
         let searctBtnCount = 0
-        searchBtn.addEventListener("click", e => {
+        searchBtn.addEventListener("click", (e) => {
             searctBtnCount++
-            if (searctBtnCount % 2 !== 0) { //This is odd count
+            if (searctBtnCount % 2 !== 0) {
                 e.target.parentElement.classList.add("active")
             } else {
                 getUserData(e.target.parentElement.children[1].value)
-                clearInterval(interval)
                 e.target.parentElement.classList.remove("active")
-                // document.querySelector(".container").style.filter = "blur(3px)"
             }
 
 
         })
 
 
-        let currentSentenceIdx = 0
-        let currentCharIdx = 0
-        let interval;
-        const heroTyper = () => {
-            document.querySelector(".sentences").style.opacity = 0
-            interval = setInterval(() => {
-                const currentSentence = heroSentencesArr[currentSentenceIdx]
-                const displayedText = currentSentence.slice(0, currentCharIdx)
-                document.querySelector(".sentences").textContent = displayedText
-                document.querySelector(".sentences").style.opacity = 1
-                currentCharIdx++
-
-                if (currentCharIdx === currentSentence.length) {
-                    clearInterval(interval)
-                    currentSentenceIdx++
-                    if (currentSentenceIdx === heroSentencesArr.length) {
-                        currentSentenceIdx = 0
-                    }
-                    currentCharIdx = 0
-                    setTimeout(() => {
-                        heroTyper()
-                    }, 3000)
-                }
-            }, 100)
-
-        }
-
-
-        heroTyper()
-
 
         let modeToggleCount = 0
-        document.getElementById("mode-toggle").addEventListener("click", e => {
-            modeToggleCount++
+        document.getElementById("toggler").addEventListener("click", e => {
+            ++modeToggleCount
             if (modeToggleCount % 2 !== 0) {
                 if (localStorage.getItem("dark-mode") !== "on") {
                     document.body.classList.add("dark")
-                    e.target.classList.replace("fa-sun", "fa-moon")
+                    document.getElementById("toggler").classList.add("darken")
+                    document.getElementById("toggler").classList.remove("whiten")
+                    document.getElementById("mode-toggle").classList.replace("fa-sun", "fa-moon")
                     localStorage.setItem("dark-mode", "on")
                 } else {
                     document.body.classList.remove("dark")
-                    e.target.classList.replace("fa-moon", "fa-sun")
+                    document.getElementById("toggler").classList.remove("darken")
+                    document.getElementById("toggler").classList.add("whiten")
+                    document.getElementById("mode-toggle").classList.replace("fa-moon", "fa-sun")
                     localStorage.setItem("dark-mode", "off")
                 }
             } else {
-
                 document.body.classList.remove("dark")
-                e.target.classList.replace("fa-moon", "fa-sun")
+                document.getElementById("toggler").classList.remove("darken")
+                document.getElementById("toggler").classList.add("whiten")
+                document.getElementById("mode-toggle").classList.replace("fa-moon", "fa-sun")
                 localStorage.setItem("dark-mode", "off")
                 modeToggleCount = 0
             }
@@ -281,9 +309,6 @@
             document.querySelector(".header nav").classList.toggle("opened");
 
         }
-
-
-
     </script>
 </body>
 
